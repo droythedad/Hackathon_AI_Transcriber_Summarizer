@@ -1,15 +1,27 @@
 
 import { GoogleGenAI } from '@google/genai';
 
-const API_KEY = process.env.API_KEY;
+// --- IMPORTANT ---
+// For this app to work, you must replace the placeholder below with your actual Gemini API key.
+// Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
+const API_KEY = process.env.API_KEY || 'YOUR_API_KEY_HERE';
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+
+let ai: GoogleGenAI | null = null;
+const isApiKeyValid = API_KEY && API_KEY !== 'YOUR_API_KEY_HERE';
+
+if (isApiKeyValid) {
+  ai = new GoogleGenAI({ apiKey: API_KEY });
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+export const isApiReady = () => isApiKeyValid && ai !== null;
+
 
 export const transcribeAudio = async (base64Audio: string, mimeType: string): Promise<string> => {
+  if (!isApiReady() || !ai) {
+    throw new Error('The Gemini API key is missing or invalid. Please update it in `services/geminiService.ts`.');
+  }
+
   try {
     const audioPart = {
       inlineData: {
@@ -35,6 +47,10 @@ export const transcribeAudio = async (base64Audio: string, mimeType: string): Pr
 };
 
 export const summarizeText = async (text: string): Promise<string> => {
+  if (!isApiReady() || !ai) {
+    throw new Error('The Gemini API key is missing or invalid. Please update it in `services/geminiService.ts`.');
+  }
+
   try {
     const prompt = `Based on the following meeting transcript, provide a concise summary. The summary must be a single paragraph and no longer than 160 characters.\n\nTranscript:\n"""${text}"""`;
     
