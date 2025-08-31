@@ -1,0 +1,7 @@
+{
+  "name": "AI Meeting Transcriber",
+  "description": "An AI agent that transcribes speech from meetings to text in real-time using the Gemini API. Capture audio from your microphone and get an accurate transcription.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
