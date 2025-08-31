@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AlertTriangleIcon } from './Icons';
 
@@ -24,7 +23,7 @@ export const ApiKeyBanner: React.FC = () => {
               </li>
               <li>
                 Find the line that says: <br/>
-                <code className="bg-slate-700 text-red-400 px-1 py-0.5 rounded text-sm mt-1 inline-block">const API_KEY = process.env.API_KEY || 'YOUR_API_KEY_HERE';</code>
+                <code className="bg-slate-700 text-red-400 px-1 py-0.5 rounded text-sm mt-1 inline-block">const API_KEY = 'YOUR_API_KEY_HERE';</code>
               </li>
               <li>
                 Replace <code className="bg-slate-700 text-cyan-300 px-1 py-0.5 rounded text-sm">'YOUR_API_KEY_HERE'</code> with your actual Gemini API key.

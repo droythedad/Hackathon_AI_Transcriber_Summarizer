@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 // --- IMPORTANT ---
 // For this app to work, you must replace the placeholder below with your actual Gemini API key.
 // Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
-const API_KEY = process.env.API_KEY || 'YOUR_API_KEY_HERE';
+const API_KEY = 'YOUR_API_KEY_HERE';
 
 
 let ai: GoogleGenAI | null = null;
