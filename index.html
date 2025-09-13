@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Meeting Transcriber</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      console.log("index.html: Head script executing.");
+    </script>
     <script type="importmap">
 {
   "imports": {
@@ -22,5 +25,11 @@
   <body class="bg-slate-900">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <noscript>
+      <div style="color: white; text-align: center; padding-top: 50px; font-family: sans-serif;">
+        <h1>JavaScript is Required</h1>
+        <p>This application requires JavaScript to be enabled. Please enable it in your browser settings.</p>
+      </div>
+    </noscript>
   </body>
 </html>
