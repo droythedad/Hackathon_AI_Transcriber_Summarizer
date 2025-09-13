@@ -5,11 +5,10 @@ import { Controls } from './components/Controls';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
 import { StatusIndicator } from './components/StatusIndicator';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
-import { transcribeAudio, summarizeText, isApiReady } from './services/geminiService';
+import { transcribeAudio, summarizeText } from './services/geminiService';
 import { RecordingStatus, type TranscriptEntry } from './types';
 import { ErrorMessage } from './components/ErrorMessage';
 import { SummaryDisplay } from './components/SummaryDisplay';
-import { ApiKeyBanner } from './components/ApiKeyBanner';
 
 const App: React.FC = () => {
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -93,10 +92,6 @@ const App: React.FC = () => {
     setSummary(null);
     setAppStatus(RecordingStatus.IDLE);
   };
-
-  if (!isApiReady()) {
-    return <ApiKeyBanner />;
-  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center p-4 md:p-8">
