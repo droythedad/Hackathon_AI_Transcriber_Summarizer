@@ -1,14 +1,14 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Controls } from './components/Controls';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
 import { StatusIndicator } from './components/StatusIndicator';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
-import { transcribeAudio, summarizeText } from './services/geminiService';
+import { initializeAi, transcribeAudio, summarizeText } from './services/geminiService';
 import { RecordingStatus, type TranscriptEntry } from './types';
 import { ErrorMessage } from './components/ErrorMessage';
 import { SummaryDisplay } from './components/SummaryDisplay';
+import { ApiKeyBanner } from './components/ApiKeyBanner';
 
 const App: React.FC = () => {
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -16,6 +16,20 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState<boolean>(false);
+  const [isConfigured, setIsConfigured] = useState<boolean>(false);
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('GEMINI_API_KEY');
+    if (savedApiKey) {
+      try {
+        initializeAi(savedApiKey);
+        setIsConfigured(true);
+      } catch (err) {
+        console.error("Failed to initialize with saved API key:", err);
+        localStorage.removeItem('GEMINI_API_KEY');
+      }
+    }
+  }, []);
   
   const { startRecording, stopRecording, analyserNode, recordingStatus } = useAudioRecorder({
     onStatusChange: setAppStatus,
@@ -24,6 +38,30 @@ const App: React.FC = () => {
         setAppStatus(RecordingStatus.ERROR);
     }
   });
+
+  const handleApiKeySave = (apiKey: string) => {
+    try {
+      initializeAi(apiKey);
+      localStorage.setItem('GEMINI_API_KEY', apiKey);
+      setIsConfigured(true);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to initialize Gemini AI:", err);
+      setError("The provided API key appears to be invalid.");
+    }
+  };
+
+  const handleApiError = (err: unknown) => {
+    const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+    if (errorMessage.includes('API Key is invalid')) {
+      localStorage.removeItem('GEMINI_API_KEY');
+      setIsConfigured(false);
+      // The component will re-render to the banner, so setting a persistent error isn't necessary.
+    } else {
+      setError(`An error occurred: ${errorMessage}`);
+      setAppStatus(RecordingStatus.ERROR);
+    }
+  };
 
   const handleStopRecording = useCallback(async () => {
     const audioData = await stopRecording();
@@ -48,9 +86,7 @@ const App: React.FC = () => {
         setAppStatus(RecordingStatus.IDLE);
       } catch (err) {
         console.error("Transcription error:", err);
-        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during transcription.";
-        setError(`Failed to transcribe audio: ${errorMessage}`);
-        setAppStatus(RecordingStatus.ERROR);
+        handleApiError(err);
       }
     }
   }, [stopRecording]);
@@ -78,8 +114,7 @@ const App: React.FC = () => {
       setSummary(summaryText);
     } catch (err) {
       console.error("Summarization error:", err);
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during summarization.";
-      setError(`Failed to generate summary: ${errorMessage}`);
+      handleApiError(err);
     } finally {
       setIsSummarizing(false);
     }
@@ -92,6 +127,10 @@ const App: React.FC = () => {
     setSummary(null);
     setAppStatus(RecordingStatus.IDLE);
   };
+
+  if (!isConfigured) {
+    return <ApiKeyBanner onSave={handleApiKeySave} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col items-center p-4 md:p-8">

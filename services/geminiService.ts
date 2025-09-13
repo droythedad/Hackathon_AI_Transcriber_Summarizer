@@ -1,12 +1,27 @@
-
 import { GoogleGenAI } from '@google/genai';
 
-// The API key is read from the environment variable `process.env.API_KEY`,
-// which is assumed to be set in the execution environment.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
 
+export function initializeAi(apiKey: string) {
+  if (!apiKey) {
+    throw new Error("API key is required to initialize Gemini AI.");
+  }
+  ai = new GoogleGenAI({ apiKey });
+}
+
+const handleApiError = (error: unknown): never => {
+  console.error('Error during Gemini API call:', error);
+  if (error instanceof Error && (error.message.includes('API key not valid') || error.message.includes('permission is not found'))) {
+    throw new Error('The provided API Key is invalid. Please check and enter it again.');
+  }
+  throw new Error('Failed to communicate with the AI model.');
+};
 
 export const transcribeAudio = async (base64Audio: string, mimeType: string): Promise<string> => {
+  if (!ai) {
+    throw new Error('Gemini AI not initialized. Please configure the API key first.');
+  }
+
   try {
     const audioPart = {
       inlineData: {
@@ -26,12 +41,15 @@ export const transcribeAudio = async (base64Audio: string, mimeType: string): Pr
     
     return response.text;
   } catch (error) {
-    console.error('Error during Gemini API call:', error);
-    throw new Error('Failed to communicate with the AI model.');
+    handleApiError(error);
   }
 };
 
 export const summarizeText = async (text: string): Promise<string> => {
+  if (!ai) {
+    throw new Error('Gemini AI not initialized. Please configure the API key first.');
+  }
+
   try {
     const prompt = `Based on the following meeting transcript, provide a concise summary. The summary must be a single paragraph and no longer than 160 characters.\n\nTranscript:\n"""${text}"""`;
     
@@ -42,7 +60,6 @@ export const summarizeText = async (text: string): Promise<string> => {
 
     return response.text;
   } catch (error) {
-    console.error('Error during Gemini API call for summarization:', error);
-    throw new Error('Failed to communicate with the AI model for summarization.');
+    handleApiError(error);
   }
 };
